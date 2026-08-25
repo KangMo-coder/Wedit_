@@ -44,8 +44,8 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [mainConcern, setMainConcern] = useState<string>("");
   const [causeCandidates, setCauseCandidates] = useState<string[]>([]);
-  const [sleepHours, setSleepHours] = useState(7);
-  const [waterIntake, setWaterIntake] = useState(1);
+  const [sleepHours, setSleepHours] = useState<number | "">(7);
+  const [waterIntake, setWaterIntake] = useState<number | "">(1);
   const [wakeUpTime, setWakeUpTime] = useState("07:00");
   const [sleepTime, setSleepTime] = useState("00:00");
   const [ownedProducts, setOwnedProducts] = useState<Record<string, boolean>>(
@@ -65,10 +65,10 @@ export default function OnboardingPage() {
     step === 1
       ? mainConcern !== "" && causeCandidates.length > 0
       : step === 2
-        ? sleepHours > 0 &&
-          waterIntake >= 0 &&
-          wakeUpTime !== "" &&
-          sleepTime !== ""
+  ? sleepHours !== "" && sleepHours > 0 &&
+    waterIntake !== "" && waterIntake >= 0 &&
+    wakeUpTime !== "" &&
+    sleepTime !== ""
         : PRODUCT_CATEGORIES.every(
             (product) => ownedProducts[product.code] !== undefined
           );
@@ -83,8 +83,8 @@ export default function OnboardingPage() {
         {
           mainConcern,
           causeCandidates,
-          sleepHours,
-          waterIntake,
+          sleepHours: Number(sleepHours),
+          waterIntake: Number(waterIntake),
           wakeUpTime,
           sleepTime,
           preferredMissionTypes: [],
@@ -221,7 +221,7 @@ export default function OnboardingPage() {
                       inputMode="numeric"
                       placeholder="숫자 선택"
                       value={sleepHours}
-                      onChange={(e) => setSleepHours(Number(e.target.value))}
+                      onChange={(e) => setSleepHours(e.target.value === "" ? "" : Number(e.target.value))}
                       className="w-full rounded-[10px] border border-transparent bg-[#F7F8F8] px-3 py-2.5 pr-12 text-xs text-[#2B3A33] outline-none transition-colors placeholder:text-[#AAB4AE] focus:border-[#A7FBE7] focus:bg-white"
                     />
                     <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#8A968F]">
@@ -242,7 +242,7 @@ export default function OnboardingPage() {
                       min="0"
                       placeholder="입력"
                       value={waterIntake}
-                      onChange={(e) => setWaterIntake(Number(e.target.value))}
+                      onChange={(e) => setWaterIntake(e.target.value === "" ? "" : Number(e.target.value))}
                       className="w-full rounded-[10px] border border-transparent bg-[#F7F8F8] px-3 py-2.5 pr-10 text-xs text-[#2B3A33] outline-none transition-colors placeholder:text-[#AAB4AE] focus:border-[#A7FBE7] focus:bg-white"
                     />
                     <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#8A968F]">
