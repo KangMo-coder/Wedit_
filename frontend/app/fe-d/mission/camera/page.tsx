@@ -26,31 +26,20 @@ function formatVerificationCriteria(criteria: string): string[] {
   }
 }
 
-// BE-B는 criteria를 JSON 배열 문자열로만 받는다. mission.verificationCriteria가
-// 이미 JSON 배열이면 그대로, 일반 문자열이면 단일 기준으로 감싸서 정규화한다.
-// 값이 없으면 undefined를 반환해 uploadClip이 필드 자체를 생략하게 한다.
-function normalizeCriteria(raw: string | null | undefined): string | undefined {
-  if (!raw) return undefined;
-
-  try {
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      return raw;
-    }
-  } catch {
-    // JSON이 아닌 일반 문자열인 경우 아래에서 감싸서 처리
-  }
-
-  return JSON.stringify([{ id: "mission_criteria", description: raw }]);
-}
-
 function CameraPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const missionId = Number(searchParams.get("missionId"));
   const { accessToken } = useAuth();
 
-  const { videoRef, stream, status, requestCamera } = useCamera();
+  const {
+    videoRef,
+    stream,
+    status,
+    requestCamera,
+    facingMode,
+    toggleCamera,
+  } = useCamera();
 
   const {
     isRecording,
@@ -113,19 +102,17 @@ function CameraPageInner() {
         false,
         accessToken,
         mission.title,
-        normalizeCriteria(mission.verificationCriteria)
+        mission.verificationCriteria
       );
 
-     router.push(
-  `/fe-e/mission/result?clipId=${res.clipId}&retryCount=${res.remainingRetryCount ?? 0}`
-);
-    } catch (err: any) {
-      console.error("클립 업로드 상세 에러:", err);
-
-      const displayMessage =
-        err?.message || "업로드에 실패했어요. 다시 시도해주세요.";
-
-      setUploadError(displayMessage);
+      router.push(
+        `/fe-e/mission/result?clipId=${res.clipId}&retryCount=${
+          res.remainingRetryCount ?? 0
+        }`
+      );
+    } catch (err) {
+      console.error(err);
+      setUploadError("업로드에 실패했어요. 다시 시도해주세요.");
       setUploading(false);
     }
   }
@@ -204,12 +191,23 @@ function CameraPageInner() {
 
           {status === "granted" && !recordedUrl && (
             <div className="relative aspect-[3/4] bg-[#ECECEC] rounded-2xl overflow-hidden">
+              <button
+                type="button"
+                onClick={toggleCamera}
+                disabled={isRecording}
+                className="absolute top-3 left-3 bg-black/50 text-white text-xs font-bold px-3 py-1 rounded-full disabled:opacity-40 z-10"
+              >
+                {facingMode === "user" ? "후면" : "전면"}
+              </button>
+
               <video
                 ref={videoRef}
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-full object-cover"
+                className={`w-full h-full object-cover ${
+                  facingMode === "user" ? "scale-x-[-1]" : ""
+                }`}
               />
 
               {isRecording && (
@@ -263,10 +261,7 @@ function CameraPageInner() {
                 </Button>
 
                 <button
-                  onClick={() => {
-                    reset();
-                    requestCamera();
-                  }}
+                  onClick={reset}
                   disabled={uploading}
                   className="w-full py-3 text-sm text-[#999]"
                 >
