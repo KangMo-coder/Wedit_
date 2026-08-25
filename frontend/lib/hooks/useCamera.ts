@@ -25,7 +25,7 @@ export function useCamera() {
   async function requestCamera() {
     try {
       const newStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
+        video: { facingMode: {ideal: "user" }},
         audio: false,
       });
 
